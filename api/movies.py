@@ -19,12 +19,12 @@ def view_movies():
             movie_list = Movie.query.order_by(Movie.no_of_votes.desc()).all()
 
     # elif 'search' in qu:
+    #     if qu['search'] == ''
     #     search_word = qu['search']
     #     print(search_word, type(search_word))
     #     movie_list = Movie.query.whooshee_search('Poter').all()
 
     else:
-        print('else')
         movie_list = Movie.query.all()
     movies = []
 
@@ -36,7 +36,7 @@ def view_movies():
              'number_of_votes': movie.no_of_votes, 'genres': [genre.name for genre in genre_list]}
         )
 
-    return jsonify({'movies': movies})
+    return jsonify({'movies': movies}), 200
 
 
 @movie_blueprint.route('/movies/<movie_id>', methods=['GET'])
@@ -75,7 +75,16 @@ def add_movies(current_user):
         return jsonify({'message': 'genres not valid'}), 400
     db.session.commit()
 
-    return jsonify({'message': 'Movie created'}), 201
+    movie = {
+        'id': new_movie.id,
+        'name': new_movie.name,
+        'imdb_score': new_movie.imdb_score,
+        'number_of_votes': new_movie.no_of_votes,
+        'director': new_movie.director,
+        'date_added': new_movie.date_created
+    }
+
+    return jsonify({'movie': movie}), 201
 
 
 @movie_blueprint.route('/movies/delete/<movie_id>', methods=['DELETE'])
@@ -88,7 +97,7 @@ def delete_movie(current_user, movie_id):
     movie.types = []
     db.session.delete(movie)
     db.session.commit()
-    return jsonify({'message': 'Movie Deleted'}), 200
+    return jsonify({'message': 'Movie Deleted'}), 204
 
 
 @movie_blueprint.route('/movies/update/<movie_id>', methods=['PATCH'])
@@ -97,9 +106,12 @@ def update_movie(current_user, movie_id):
     data = request.get_json()
     if not data:
         return jsonify({'message': 'Invalid request'}), 400
+
     allowed_update_fields = {'name', 'director', 'genres'}
+
     if not set(data.keys()).issubset(allowed_update_fields):
         return jsonify({'message': 'Only name and director can be updated'}), 400
+
     movie = Movie.query.get(movie_id)
     for key in data:
         if key == 'name':
@@ -116,13 +128,24 @@ def update_movie(current_user, movie_id):
                 return jsonify({'message': 'genres not valid'}), 400
 
     db.session.commit()
-    return jsonify({'message': 'Movie updated successfully'}), 200
+    movie = {
+        'id': movie.id,
+        'name': movie.name,
+        'imdb_score': movie.imdb_score,
+        'number_of_votes': movie.no_of_votes,
+        'director': movie.director,
+        'date_added': movie.date_created
+    }
+    return jsonify({'movie': movie}), 200
 
 
 @movie_blueprint.route('/movies/review', methods=['POST'])
 @auth_required
 def review(current_user):
     review_data = request.get_json()
+    check_review = Review.query.filter_by(movie_id=review_data['movie_id'], user_id=current_user.id).first()
+    if check_review:
+        return jsonify({'message': 'Review already exists'})
     new_review = Review(rating=review_data['rating'], movie_id=review_data['movie_id'],
                         user_id=current_user.id, comment=review_data['comment'],
                         date_created=datetime.now())
@@ -142,8 +165,8 @@ def add_genre():
     data = request.get_json()
     genre = Genre.query.filter_by(name=data['name']).first()
     if genre:
-        return jsonify({'message': 'Genre already exists'})
+        return jsonify({'message': 'Genre already exists'}), 400
     new_genre = Genre(name=data['name'])
     db.session.add(new_genre)
     db.session.commit()
-    return jsonify({'message': 'Genre added'})
+    return jsonify({'message': 'Genre added'}), 201
