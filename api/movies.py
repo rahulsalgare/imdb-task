@@ -18,7 +18,13 @@ def view_movies():
         elif qu['sort'] == 'popularity':
             movie_list = Movie.query.order_by(Movie.no_of_votes.desc()).all()
 
+    # elif 'search' in qu:
+    #     search_word = qu['search']
+    #     print(search_word, type(search_word))
+    #     movie_list = Movie.query.whooshee_search('Poter').all()
+
     else:
+        print('else')
         movie_list = Movie.query.all()
     movies = []
 

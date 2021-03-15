@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_swagger_ui import get_swaggerui_blueprint
 
 db = SQLAlchemy()
 
@@ -11,21 +10,11 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///imdb.sqlite"
     db.init_app(app)
 
-    SWAGGER_URL = '/api/docs'
-    API_URL = 'api-docs'
-
-    swagger_ui_blueprint = get_swaggerui_blueprint(
-        SWAGGER_URL,
-        API_URL,
-        config={
-            'app_name': 'IMDB'
-        }
-    )
     from .movies import movie_blueprint
     from .users import user_blueprint
+    from .models import Movie
 
     app.register_blueprint(movie_blueprint)
     app.register_blueprint(user_blueprint)
-    app.register_blueprint(swagger_ui_blueprint)
 
     return app
