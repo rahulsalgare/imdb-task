@@ -11,7 +11,15 @@ movie_blueprint = Blueprint('movies', __name__)
 
 @movie_blueprint.route('/movies', methods=['GET'])
 def view_movies():
-    movie_list = Movie.query.all()
+    qu = request.args
+    if 'sort' in qu:
+        if qu['sort'] == 'recent':
+            movie_list = Movie.query.order_by(Movie.date_created.desc()).all()
+        elif qu['sort'] == 'popularity':
+            movie_list = Movie.query.order_by(Movie.no_of_votes.desc()).all()
+
+    else:
+        movie_list = Movie.query.all()
     movies = []
 
     for movie in movie_list:
