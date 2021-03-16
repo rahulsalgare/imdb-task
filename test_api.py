@@ -11,7 +11,7 @@ class ApiTest(unittest.TestCase):
     movie_id = 0
 
     genre_obj = {
-        "name": "Fantasy"
+        "genres": ["Fantasy"]
     }
 
     movie_obj = {
@@ -45,7 +45,7 @@ class ApiTest(unittest.TestCase):
         ApiTest.token = r.json()['token']
 
     def test_4_add_genre(self):
-        r = requests.post(ApiTest.API_URL + '/add_genre', json=ApiTest.genre_obj,
+        r = requests.post(ApiTest.API_URL + '/add_genres', json=ApiTest.genre_obj,
                           headers={'x-access-token': ApiTest.token})
         assert r.status_code == 200 or r.status_code == 201
 
