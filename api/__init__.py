@@ -1,10 +1,10 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import requests
 from flask_whooshee import Whooshee
 
 db = SQLAlchemy()
 whooshee = Whooshee()
+
 
 def create_app():
     app = Flask(__name__)

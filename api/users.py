@@ -2,14 +2,14 @@ import datetime
 import uuid
 
 import jwt
+from cerberus import Validator
 from flask import Blueprint, current_app, jsonify, make_response, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
+from .decorators import auth_required
 from .models import User
 from .schemas import user_schema
-from cerberus import Validator
-from .decorators import auth_required
 
 v = Validator()
 user_blueprint = Blueprint('users', __name__)
@@ -50,7 +50,7 @@ def get_users(current_user):
 
 @user_blueprint.route('/get_user/<public_id>', methods=['GET'])
 @auth_required
-def get_one_user(current_user,public_id):
+def get_one_user(current_user, public_id):
     if not current_user.admin:
         return jsonify({'message': 'Unauthorized'}), 401
     user = User.query.filter_by(public_id=public_id).first()
