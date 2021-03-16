@@ -70,8 +70,8 @@ def view_one_movie(movie_id):
 @movie_blueprint.route('/movies/create', methods=['POST'])
 @auth_required
 def add_movies(current_user):
-    # if not current_user.admin:
-    #     return jsonify({'message': 'Unauthorized'}), 401
+    if not current_user.admin:
+        return jsonify({'message': 'Unauthorized'}), 401
 
     movie_data = request.get_json()
 
@@ -104,6 +104,9 @@ def add_movies(current_user):
 @movie_blueprint.route('/movies/bulk/create', methods=['POST'])
 @auth_required
 def movies_bulk_create(current_user):
+    if not current_user.admin:
+        return jsonify({'message': 'Unauthorized'}), 401
+
     data = request.get_json()
 
     for movie in data:
@@ -127,8 +130,8 @@ def movies_bulk_create(current_user):
 @movie_blueprint.route('/movies/delete/<movie_id>', methods=['DELETE'])
 @auth_required
 def delete_movie(current_user, movie_id):
-    # if not current_user.admin:
-    #     return jsonify({'message': 'Unauthorized'}), 401
+    if not current_user.admin:
+        return jsonify({'message': 'Unauthorized'}), 401
 
     movie = Movie.query.get(movie_id)
     movie.types = []
@@ -140,6 +143,9 @@ def delete_movie(current_user, movie_id):
 @movie_blueprint.route('/movies/update/<movie_id>', methods=['PATCH'])
 @auth_required
 def update_movie(current_user, movie_id):
+    if not current_user.admin:
+        return jsonify({'message': 'Unauthorized'}), 401
+
     data = request.get_json()
     if not data:
         return jsonify({'message': 'Invalid request'}), 400
@@ -198,7 +204,11 @@ def review(current_user):
 
 
 @movie_blueprint.route('/add_genre', methods=['POST'])
-def add_genre():
+@auth_required
+def add_genre(current_user):
+    if not current_user.admin:
+        return jsonify({'message': 'Unauthorized'}), 401
+
     data = request.get_json()
     genre = Genre.query.filter_by(name=data['name']).first()
     if genre:
