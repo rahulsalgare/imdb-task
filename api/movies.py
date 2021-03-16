@@ -61,7 +61,8 @@ def view_one_movie(movie_id):
         'imdb_score': movie.imdb_score,
         'number_of_votes': movie.no_of_votes,
         'director': movie.director,
-        'date_added': movie.date_created
+        'date_added': movie.date_created,
+        'genres': [genre.name for genre in movie.types]
     }
 
     return jsonify({'movie': movie})
