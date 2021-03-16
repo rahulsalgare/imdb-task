@@ -15,6 +15,12 @@ v = Validator()
 
 @movie_blueprint.route('/movies', methods=['GET'])
 def view_movies():
+    '''
+    get movies
+    sort movies based on recency, popularity and imdb_score
+    search movies by name, genre
+    '''
+
     qu = request.args
     genres = Genre.query.with_entities(Genre.name).all()
     genres = set(g[0] for g in genres)
@@ -53,6 +59,10 @@ def view_movies():
 
 @movie_blueprint.route('/movies/<movie_id>', methods=['GET'])
 def view_one_movie(movie_id):
+    '''
+    view one single movie detail
+    '''
+
     movie = Movie.query.get(movie_id)
     if not movie:
         return jsonify({'message': 'No movie found'})
@@ -73,6 +83,10 @@ def view_one_movie(movie_id):
 @movie_blueprint.route('/movies/create', methods=['POST'])
 @auth_required
 def add_movies(current_user):
+    '''
+    Add single movie record
+    '''
+
     if not current_user.admin:
         return jsonify({'message': 'Unauthorized'}), 401
 
@@ -107,6 +121,10 @@ def add_movies(current_user):
 @movie_blueprint.route('/movies/bulk/create', methods=['POST'])
 @auth_required
 def movies_bulk_create(current_user):
+    '''
+    Add multiple movies record
+    '''
+
     if not current_user.admin:
         return jsonify({'message': 'Unauthorized'}), 401
 
@@ -146,6 +164,9 @@ def delete_movie(current_user, movie_id):
 @movie_blueprint.route('/movies/update/<movie_id>', methods=['PATCH'])
 @auth_required
 def update_movie(current_user, movie_id):
+    '''
+    update a single movie record(name, director, genres)
+    '''
     if not current_user.admin:
         return jsonify({'message': 'Unauthorized'}), 401
 
@@ -188,6 +209,10 @@ def update_movie(current_user, movie_id):
 @movie_blueprint.route('/movies/review', methods=['POST'])
 @auth_required
 def review(current_user):
+    '''
+    rate a movie
+    add comment
+    '''
     review_data = request.get_json()
     if not v(review_data, review_schema):
         return jsonify(v.errors)
@@ -211,6 +236,9 @@ def review(current_user):
 @movie_blueprint.route('/add_genres', methods=['POST'])
 @auth_required
 def add_genre(current_user):
+    '''
+    add list of genres
+    '''
     if not current_user.admin:
         return jsonify({'message': 'Unauthorized'}), 401
 
