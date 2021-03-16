@@ -7,13 +7,18 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
 from .models import User
+from .schemas import user_schema
+from cerberus import Validator
 
+v = Validator()
 user_blueprint = Blueprint('users', __name__)
 
 
 @user_blueprint.route('/user', methods=['POST'])
 def create_user():
     user_data = request.get_json()
+    if not v(user_data, user_schema):
+        return jsonify(v.errors)
     hashed_password = generate_password_hash(user_data['password'], method='sha256')
     new_user = User(public_id=str(uuid.uuid4()), name=user_data['name'], password=hashed_password,
                     admin=False)

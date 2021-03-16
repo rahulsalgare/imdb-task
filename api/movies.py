@@ -1,28 +1,38 @@
 from datetime import datetime
 
+from cerberus import Validator
 from flask import Blueprint, jsonify, request
 
 from . import db
 from .decorators import auth_required
 from .models import Genre, Movie, Review
+from .schemas import movie_schema
 
 movie_blueprint = Blueprint('movies', __name__)
+
+v = Validator()
 
 
 @movie_blueprint.route('/movies', methods=['GET'])
 def view_movies():
     qu = request.args
+    genres = Genre.query.with_entities(Genre.name).all()
+    genres = set(g[0] for g in genres)
+
     if 'sort' in qu:
         if qu['sort'] == 'recent':
             movie_list = Movie.query.order_by(Movie.date_created.desc()).all()
         elif qu['sort'] == 'popularity':
             movie_list = Movie.query.order_by(Movie.no_of_votes.desc()).all()
 
-    # elif 'search' in qu:
-    #     if qu['search'] == ''
-    #     search_word = qu['search']
-    #     print(search_word, type(search_word))
-    #     movie_list = Movie.query.whooshee_search('Poter').all()
+    elif 'search' in qu:
+        if qu['search'] in genres:
+            g = Genre.query.filter_by(name=qu['search']).first()
+            movie_list = g.genres.all()
+
+        else:
+            search_word = qu['search']
+            movie_list = Movie.query.whooshee_search(search_word).all()
 
     else:
         movie_list = Movie.query.all()
@@ -64,15 +74,19 @@ def add_movies(current_user):
     #     return jsonify({'message': 'Unauthorized'}), 401
 
     movie_data = request.get_json()
+
+    if not v(movie_data, movie_schema):
+        return jsonify(v.errors)
+
     new_movie = Movie(name=movie_data['name'], director=movie_data['director'],
                       date_created=datetime.now())
-    db.session.add(new_movie)
     try:
         for genre in movie_data['genres']:
             g = Genre.query.filter_by(name=genre).first()
             g.genres.append(new_movie)
     except:
         return jsonify({'message': 'genres not valid'}), 400
+    db.session.add(new_movie)
     db.session.commit()
 
     movie = {
@@ -85,6 +99,29 @@ def add_movies(current_user):
     }
 
     return jsonify({'movie': movie}), 201
+
+
+@movie_blueprint.route('/movies/bulk/create', methods=['POST'])
+@auth_required
+def movies_bulk_create(current_user):
+    data = request.get_json()
+
+    for movie in data:
+        if not v(movie, movie_schema):
+            return jsonify(v.errors)
+        new_movie = Movie(name=movie['name'], director=movie['director'],
+                          date_created=datetime.now())
+        try:
+            for genre in movie['genres']:
+                g = Genre.query.filter_by(name=genre).first()
+                g.genres.append(new_movie)
+        except:
+            return jsonify({'message': 'genres not valid'}), 400
+
+        db.session.add(new_movie)
+
+    db.session.commit()
+    return jsonify({'message': 'movies created'}), 201
 
 
 @movie_blueprint.route('/movies/delete/<movie_id>', methods=['DELETE'])

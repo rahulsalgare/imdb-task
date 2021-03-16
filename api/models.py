@@ -1,4 +1,5 @@
 from . import db
+from . import whooshee
 
 genres = db.Table(
     'genres',
@@ -7,6 +8,7 @@ genres = db.Table(
 )
 
 
+@whooshee.register_model('name')
 class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
