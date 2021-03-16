@@ -9,6 +9,7 @@ from . import db
 from .models import User
 from .schemas import user_schema
 from cerberus import Validator
+from .decorators import auth_required
 
 v = Validator()
 user_blueprint = Blueprint('users', __name__)
@@ -29,7 +30,10 @@ def create_user():
 
 
 @user_blueprint.route('/get_users', methods=['GET'])
-def get_users():
+@auth_required
+def get_users(current_user):
+    if not current_user.admin:
+        return jsonify({'message': 'Unauthorized'}), 401
     user_list = User.query.all()
     users = []
 
@@ -45,7 +49,10 @@ def get_users():
 
 
 @user_blueprint.route('/get_user/<public_id>', methods=['GET'])
-def get_one_user(public_id):
+@auth_required
+def get_one_user(current_user,public_id):
+    if not current_user.admin:
+        return jsonify({'message': 'Unauthorized'}), 401
     user = User.query.filter_by(public_id=public_id).first()
     if not user:
         return jsonify({'message': 'No user found'})
