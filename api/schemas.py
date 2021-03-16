@@ -30,3 +30,17 @@ genres_schema = {
         }
     }
 }
+
+review_schema = {
+    "movie_id": {
+        "type": "integer"
+    },
+    "rating": {
+        "type": "integer",
+        "min": 1,
+        "max": 10
+    },
+    "comment": {
+        "type": "string"
+    }
+}

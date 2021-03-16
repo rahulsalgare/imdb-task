@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request
 from . import db
 from .decorators import auth_required
 from .models import Genre, Movie, Review
-from .schemas import movie_schema, genres_schema
+from .schemas import movie_schema, genres_schema, review_schema
 
 movie_blueprint = Blueprint('movies', __name__)
 
@@ -24,6 +24,8 @@ def view_movies():
             movie_list = Movie.query.order_by(Movie.date_created.desc()).all()
         elif qu['sort'] == 'popularity':
             movie_list = Movie.query.order_by(Movie.no_of_votes.desc()).all()
+        elif qu['sort'] == 'imdb_score':
+            movie_list = Movie.query.order_by(Movie.imdb_score.desc()).all()
 
     elif 'search' in qu:
         if qu['search'] in genres:
@@ -187,6 +189,8 @@ def update_movie(current_user, movie_id):
 @auth_required
 def review(current_user):
     review_data = request.get_json()
+    if not v(review_data, review_schema):
+        return jsonify(v.errors)
     check_review = Review.query.filter_by(movie_id=review_data['movie_id'], user_id=current_user.id).first()
     if check_review:
         return jsonify({'message': 'Review already exists'})
