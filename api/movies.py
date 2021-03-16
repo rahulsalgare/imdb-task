@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request
 from . import db
 from .decorators import auth_required
 from .models import Genre, Movie, Review
-from .schemas import movie_schema
+from .schemas import movie_schema, genres_schema
 
 movie_blueprint = Blueprint('movies', __name__)
 
@@ -204,17 +204,24 @@ def review(current_user):
     return jsonify({'message': 'Review created'}), 201
 
 
-@movie_blueprint.route('/add_genre', methods=['POST'])
+@movie_blueprint.route('/add_genres', methods=['POST'])
 @auth_required
 def add_genre(current_user):
     if not current_user.admin:
         return jsonify({'message': 'Unauthorized'}), 401
 
     data = request.get_json()
-    genre = Genre.query.filter_by(name=data['name']).first()
-    if genre:
-        return jsonify({'message': 'Genre already exists'}), 400
-    new_genre = Genre(name=data['name'])
-    db.session.add(new_genre)
+
+    if not v(data, genres_schema):
+        return jsonify(v.errors)
+
+    for genre in data['genres']:
+        genre_check = Genre.query.filter_by(name=genre).first()
+        if genre_check:
+            return jsonify({'message': 'Genre already exists'}), 400
+
+        new_genre = Genre(name=genre)
+        db.session.add(new_genre)
+
     db.session.commit()
-    return jsonify({'message': 'Genre added'}), 201
+    return jsonify({'message': 'Genres added'}), 201

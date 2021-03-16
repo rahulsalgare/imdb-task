@@ -21,3 +21,12 @@ user_schema = {
         "type": "string"
     }
 }
+
+genres_schema = {
+    "genres": {
+        "type": "list",
+        "schema": {
+            "type": "string"
+        }
+    }
+}
