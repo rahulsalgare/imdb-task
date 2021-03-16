@@ -119,7 +119,7 @@ def movies_bulk_create(current_user):
                 g = Genre.query.filter_by(name=genre).first()
                 g.genres.append(new_movie)
         except:
-            return jsonify({'message': 'genres not valid'}), 400
+            return jsonify({'message': f'genre {genre} not valid'}), 400
 
         db.session.add(new_movie)
 
